@@ -1,0 +1,2 @@
+export RUST_LOG=debug
+export DATABASE_URL=postgres://postgres:keyboard_cat@localhost:5432/postgres
