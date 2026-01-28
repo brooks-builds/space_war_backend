@@ -8,7 +8,8 @@ The core game for Space Battles is run from here, the frontends will display wha
 
 - [x] Player can create a game
 - [x] Player can join a game
-- [ ] Player gets an SSE (server sent event) for game updates
+- [x] Player gets an SSE (server sent event) for game updates
+- [ ] Player can get who is in the lobby
 - [ ] Player gets event when another player joins the lobby
 - [ ] Player gets event when another player changes ship types
 - [ ] Player can change ship type in lobby
