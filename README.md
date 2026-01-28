@@ -7,7 +7,7 @@ The core game for Space Battles is run from here, the frontends will display wha
 ### Creating a Game / Lobby
 
 - [x] Player can create a game
-- [ ] Player can join a game
+- [x] Player can join a game
 - [ ] Player gets an SSE (server sent event) for game updates
 - [ ] Player gets event when another player joins the lobby
 - [ ] Player gets event when another player changes ship types

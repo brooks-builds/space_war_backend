@@ -4,13 +4,11 @@ use sqlx::{Pool, Postgres};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-pub async fn create_game(player_name: &str, pool: &Pool<Postgres>) -> Result<DBCreatedGame> {
-    let created_player = super::create_player::create_player(player_name, pool).await?;
-
+pub async fn create_game(player_id: Uuid, pool: &Pool<Postgres>) -> Result<DBCreatedGame> {
     sqlx::query_as!(
         DBCreatedGame,
         r#"insert into games (created_by_id) values ($1) returning id, status as "status: _", created_by_id, created_at, code"#,
-        created_player.id
+        player_id
     )
     .fetch_one(pool)
     .await

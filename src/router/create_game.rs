@@ -12,14 +12,28 @@ use crate::db::{
 pub async fn create_game_route(
     Extension(db_pool): Extension<Pool<Postgres>>,
     Json(data): Json<CreateGameData>,
-) -> Result<impl IntoResponse, StatusCode> {
-    let created_game = match db::create_game::create_game(&data.player_name, &db_pool).await {
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let player = match db::create_player::create_player(&data.player_name, &db_pool).await {
+        Ok(player) => player,
+        Err(error) => {
+            eprintln!("Error creating player: {error:?}");
+
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+        }
+    };
+    let created_game = match db::create_game::create_game(player.id, &db_pool).await {
         Ok(result) => result,
         Err(error) => {
             eprintln!("Error creating game: {error:?}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
         }
     };
+
+    if let Err(error) = db::join_game::join_game(created_game.id, player.id, &db_pool).await {
+        eprintln!("Error jointing game after creating it: {error:?}");
+
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+    }
 
     Ok((
         StatusCode::CREATED,
