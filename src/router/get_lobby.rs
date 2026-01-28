@@ -17,36 +17,21 @@ use uuid::Uuid;
 use crate::db::{self, get_lobby::DBLobbyPlayer};
 
 pub async fn get_lobby_stream_route(
-    Path(game_code): Path<i32>,
-    headers: HeaderMap,
+    Path(game_id): Path<Uuid>,
+    Extension(pool): Extension<Pool<Postgres>>,
 ) -> Sse<impl Stream<Item = Result<Event, axum::Error>>> {
-    let player_id = headers
-        .get("player_id")
-        .and_then(|value| value.to_str().ok())
-        .unwrap_or_default()
-        .to_owned();
-    let stream = stream::unfold(
-        (game_code, player_id),
-        |(game_code, player_id)| async move {
-            let lobby_response = LobbyStreamResponse {
-                game_code,
-                player_id: player_id.clone(),
-            };
-            Some((
-                Event::default().json_data(lobby_response),
-                (game_code, player_id),
-            ))
-        },
-    )
+    let stream = stream::unfold((game_id, pool), |(game_id, pool)| async move {
+        let players_in_lobby = db::get_lobby::get_players_in_lobby(game_id, &pool)
+            .await
+            .unwrap();
+        let lobby_response = LobbyResponse {
+            players: players_in_lobby.into_iter().map(Into::into).collect(),
+        };
+        Some((Event::default().json_data(lobby_response), (game_id, pool)))
+    })
     .throttle(Duration::from_secs(1));
 
     Sse::new(stream).keep_alive(KeepAlive::default())
-}
-
-#[derive(Debug, Serialize)]
-pub struct LobbyStreamResponse {
-    pub game_code: i32,
-    pub player_id: String,
 }
 
 pub async fn get_lobby_route(
