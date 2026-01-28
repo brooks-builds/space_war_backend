@@ -1,9 +1,13 @@
 use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
+use time::format_description;
 use uuid::Uuid;
 
-use crate::db;
+use crate::db::{
+    self,
+    create_game::{DBCreatedGame, DBCreatedGameStatus},
+};
 
 pub async fn create_game_route(
     Extension(db_pool): Extension<Pool<Postgres>>,
@@ -17,10 +21,38 @@ pub async fn create_game_route(
         }
     };
 
-    Ok((StatusCode::CREATED, Json(created_game)))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateGameResponse::from(created_game)),
+    ))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateGameData {
     pub player_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateGameResponse {
+    pub id: Uuid,
+    pub status: DBCreatedGameStatus,
+    pub created_by_id: Uuid,
+    pub created_at: String,
+    pub code: i32,
+}
+
+impl From<DBCreatedGame> for CreateGameResponse {
+    fn from(value: DBCreatedGame) -> Self {
+        let time_formatter = format_description::parse(
+            "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory]:[offset_minute]:[offset_second]",
+        ).unwrap();
+
+        Self {
+            id: value.id,
+            status: value.status,
+            created_by_id: value.created_by_id,
+            created_at: value.created_at.format(&time_formatter).unwrap(),
+            code: value.code,
+        }
+    }
 }
