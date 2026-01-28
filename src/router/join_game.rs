@@ -1,6 +1,7 @@
 use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
+use uuid::Uuid;
 
 use crate::db::{self, get_game::get_game_by_code, join_game::join_game};
 
@@ -33,11 +34,20 @@ pub async fn join_game_route(
         return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
     }
 
-    Ok(StatusCode::OK)
+    let join_game_response = JoinGameResponse {
+        token: player.token,
+    };
+
+    Ok((StatusCode::CREATED, Json(join_game_response)))
 }
 
 #[derive(Debug, Deserialize)]
 pub struct JoinGameData {
     player_name: String,
     code: i32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct JoinGameResponse {
+    pub token: Uuid,
 }

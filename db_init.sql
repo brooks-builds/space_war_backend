@@ -3,7 +3,8 @@ CREATE TYPE game_status AS ENUM ('lobby', 'playing', 'game_over');
 CREATE TABLE IF NOT EXISTS players (
     id UUID PRIMARY KEY DEFAULT uuidv4(),
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    token UUID NOT NULL DEFAULT uuidv4()
 );
 
 CREATE TABLE IF NOT EXISTS games (

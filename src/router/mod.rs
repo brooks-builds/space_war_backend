@@ -17,6 +17,10 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
         .route("/api/games", post(create_game_route))
         .route("/api/games/join", post(join_game::join_game_route))
         .route("/api/games/{code}/lobby", get(get_lobby::get_lobby_route))
+        .route(
+            "/api/games/{code}/lobby/stream",
+            get(get_lobby::get_lobby_stream_route),
+        )
         .route("/api/healthcheck", get(healthcheck))
         .layer(Extension(pg_pool))
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
