@@ -1,7 +1,7 @@
 use axum::{
     Extension, Json,
     extract::Path,
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::{
         Sse,
         sse::{Event, KeepAlive},
@@ -35,19 +35,10 @@ pub async fn get_lobby_stream_route(
 }
 
 pub async fn get_lobby_route(
-    Path(game_code): Path<i32>,
+    Path(game_id): Path<Uuid>,
     Extension(pool): Extension<Pool<Postgres>>,
 ) -> Result<Json<LobbyResponse>, (StatusCode, String)> {
-    let game = match db::get_game::get_game_by_code(game_code, &pool).await {
-        Ok(Some(game)) => game,
-        Ok(None) => return Err((StatusCode::NOT_FOUND, "Game not found".to_owned())),
-        Err(error) => {
-            eprintln!("Error getting game: {error:?}");
-
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
-        }
-    };
-    let players_in_lobby = match db::get_lobby::get_players_in_lobby(game.id, &pool).await {
+    let players_in_lobby = match db::get_lobby::get_players_in_lobby(game_id, &pool).await {
         Ok(players) => players,
         Err(error) => {
             eprintln!("Error getting players in lobby: {error:?}");
@@ -71,13 +62,17 @@ pub struct LobbyResponse {
 pub struct LobbyPlayer {
     pub name: String,
     pub id: Uuid,
+    pub ship_class: String,
+    pub ship_character: char,
 }
 
 impl From<DBLobbyPlayer> for LobbyPlayer {
-    fn from(db_player: DBLobbyPlayer) -> Self {
+    fn from(mut db_player: DBLobbyPlayer) -> Self {
         Self {
             id: db_player.id,
             name: db_player.name,
+            ship_class: db_player.ship_class,
+            ship_character: db_player.ship_char.pop().unwrap_or('*'),
         }
     }
 }

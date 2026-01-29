@@ -2,4 +2,6 @@ pub mod create_game;
 pub mod create_player;
 pub mod get_game;
 pub mod get_lobby;
+pub mod get_ships;
 pub mod join_game;
+pub mod update_player;

@@ -1,12 +1,14 @@
+mod change_player;
 mod create_game;
 mod get_lobby;
+mod get_ships;
 mod healthcheck;
 mod join_game;
 
 use crate::router::{create_game::create_game_route, healthcheck::healthcheck};
 use axum::{
     Extension, Router,
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use sqlx::{Pool, Postgres};
 use tower::ServiceBuilder;
@@ -16,10 +18,18 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
     Router::new()
         .route("/api/games", post(create_game_route))
         .route("/api/games/join", post(join_game::join_game_route))
-        .route("/api/games/{code}/lobby", get(get_lobby::get_lobby_route))
         .route(
-            "/api/games/{code}/lobby/stream",
+            "/api/games/{game_id}/lobby",
+            get(get_lobby::get_lobby_route),
+        )
+        .route(
+            "/api/games/{game_id}/lobby/stream",
             get(get_lobby::get_lobby_stream_route),
+        )
+        .route("/api/ships", get(get_ships::get_ships))
+        .route(
+            "/api/players/ship/{ship_id}",
+            put(change_player::change_player_ship),
         )
         .route("/api/healthcheck", get(healthcheck))
         .layer(Extension(pg_pool))

@@ -11,7 +11,7 @@ The core game for Space Battles is run from here, the frontends will display wha
 - [x] Player gets an SSE (server sent event) for game updates
 - [x] Player can get who is in the lobby
 - [x] Player gets event when another player joins the lobby
-- [ ] Player can change ship type in lobby
+- [x] Player can change ship type in lobby
 - [ ] Player gets event when another player changes ship types
 - [ ] Player can change ship color in lobby
 - [ ] Player gets event when another player changes their color in the lobby
