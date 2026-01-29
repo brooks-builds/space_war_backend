@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub async fn create_game(player_id: Uuid, pool: &Pool<Postgres>) -> Result<DBCreatedGame> {
     sqlx::query_as!(
         DBCreatedGame,
-        r#"insert into games (created_by_id) values ($1) returning id, status as "status: _", created_by_id, created_at, code"#,
+        r#"insert into games (created_by_id) values ($1) returning id, status as "status: _", created_at, code"#,
         player_id
     )
     .fetch_one(pool)
@@ -19,7 +19,6 @@ pub async fn create_game(player_id: Uuid, pool: &Pool<Postgres>) -> Result<DBCre
 pub struct DBCreatedGame {
     pub id: Uuid,
     pub status: DBCreatedGameStatus,
-    pub created_by_id: Uuid,
     pub created_at: OffsetDateTime,
     pub code: i32,
 }
