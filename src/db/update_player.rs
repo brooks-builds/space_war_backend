@@ -1,4 +1,4 @@
-use eyre::Result;
+use eyre::{Context, Result};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
@@ -21,6 +21,23 @@ pub async fn change_player_ship(pool: &Pool<Postgres>, ship_id: Uuid, token: Uui
     )
     .execute(pool)
     .await?;
+
+    Ok(())
+}
+
+pub async fn change_player_color(pool: &Pool<Postgres>, token: Uuid, color_id: Uuid) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET color_id = $1
+            WHERE token = $2;
+        "#,
+        color_id,
+        token
+    )
+    .execute(pool)
+    .await
+    .context("changing player color")?;
 
     Ok(())
 }

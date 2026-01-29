@@ -1,6 +1,7 @@
 mod change_player;
 mod create_game;
 mod get_lobby;
+mod get_player;
 mod get_ships;
 mod healthcheck;
 mod join_game;
@@ -30,6 +31,11 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
         .route(
             "/api/players/ship/{ship_id}",
             put(change_player::change_player_ship),
+        )
+        .route("/api/players/colors", get(get_player::get_player_colors))
+        .route(
+            "/api/players/colors",
+            put(change_player::change_player_color),
         )
         .route("/api/healthcheck", get(healthcheck))
         .layer(Extension(pg_pool))

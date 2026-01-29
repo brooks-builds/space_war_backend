@@ -64,6 +64,7 @@ pub struct LobbyPlayer {
     pub id: Uuid,
     pub ship_class: String,
     pub ship_character: char,
+    pub ship_color: String,
 }
 
 impl From<DBLobbyPlayer> for LobbyPlayer {
@@ -73,6 +74,7 @@ impl From<DBLobbyPlayer> for LobbyPlayer {
             name: db_player.name,
             ship_class: db_player.ship_class,
             ship_character: db_player.ship_char.pop().unwrap_or('*'),
+            ship_color: db_player.color,
         }
     }
 }
