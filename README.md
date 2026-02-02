@@ -15,8 +15,8 @@ The core game for Space Battles is run from here, the frontends will display wha
 - [x] Player gets event when another player changes ship types
 - [x] Player can change ship color in lobby
 - [x] Player gets event when another player changes their color in the lobby
-- [ ] Player can quit the game
-- [ ] Players get events when another player quits the game
+- [x] When the host quits the game, someone else becomes the host
+- [x] When the last player quits the game, the game ends
 - [ ] Player can ready up
 - [ ] Player gets event when another player readies up
 - [ ] A player joining a game cancels all players ready up
