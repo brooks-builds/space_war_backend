@@ -47,3 +47,19 @@ pub async fn get_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result
     .await
     .context("Getting all players in a game")
 }
+
+pub async fn ready_up(pool: &Pool<Postgres>, token: Uuid) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET ready = true
+            WHERE token = $1
+        "#,
+        token
+    )
+    .execute(pool)
+    .await
+    .context("Readying up a player")?;
+
+    Ok(())
+}

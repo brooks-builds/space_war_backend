@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS players (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     token UUID NOT NULL DEFAULT uuidv4(),
     ship_id UUID NOT NULL REFERENCES ships (id) DEFAULT '7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c',
-    color_id UUID NOT NULL DEFAULT 'c7bb5e85-1e66-4df3-95d2-f37fb5498d63'
+    color_id UUID NOT NULL DEFAULT 'c7bb5e85-1e66-4df3-95d2-f37fb5498d63',
+    ready BOOL NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS games (

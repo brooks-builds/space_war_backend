@@ -40,6 +40,7 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
         )
         .route("/api/healthcheck", get(healthcheck))
         .route("/api/players", delete(players::delete_player))
+        .route("/api/players/ready_up", put(players::ready_up))
         .layer(Extension(pg_pool))
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }

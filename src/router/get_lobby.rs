@@ -65,6 +65,7 @@ pub struct LobbyPlayer {
     pub ship_class: String,
     pub ship_character: char,
     pub ship_color: String,
+    pub ready: bool,
 }
 
 impl From<DBLobbyPlayer> for LobbyPlayer {
@@ -75,6 +76,7 @@ impl From<DBLobbyPlayer> for LobbyPlayer {
             ship_class: db_player.ship_class,
             ship_character: db_player.ship_char.pop().unwrap_or('*'),
             ship_color: db_player.color,
+            ready: db_player.ready,
         }
     }
 }
