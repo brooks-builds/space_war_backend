@@ -63,3 +63,21 @@ pub async fn ready_up(pool: &Pool<Postgres>, token: Uuid) -> Result<()> {
 
     Ok(())
 }
+
+pub async fn unready_all_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET ready = false
+            FROM game_players
+            WHERE game_players.game_id = $1
+            AND players.id = game_players.player_id
+        "#,
+        game_id
+    )
+    .execute(pool)
+    .await
+    .context("Marking all players in a game as not ready")?;
+
+    Ok(())
+}

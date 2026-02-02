@@ -34,6 +34,12 @@ pub async fn join_game_route(
         return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
     }
 
+    if let Err(error) = db::players::unready_all_players_in_game(&db_pool, game.id).await {
+        eprintln!("{error:?}");
+
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+    }
+
     let join_game_response = JoinGameResponse {
         token: player.token,
     };
