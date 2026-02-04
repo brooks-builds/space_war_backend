@@ -42,6 +42,7 @@ pub async fn join_game_route(
 
     let join_game_response = JoinGameResponse {
         token: player.token,
+        game_id: game.id,
     };
 
     Ok((StatusCode::CREATED, Json(join_game_response)))
@@ -56,4 +57,5 @@ pub struct JoinGameData {
 #[derive(Debug, Serialize)]
 pub struct JoinGameResponse {
     pub token: Uuid,
+    pub game_id: Uuid,
 }
