@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS players (
     token UUID NOT NULL DEFAULT uuidv4(),
     ship_id UUID NOT NULL REFERENCES ships (id) DEFAULT '7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c',
     color_id UUID NOT NULL DEFAULT 'c7bb5e85-1e66-4df3-95d2-f37fb5498d63',
-    ready BOOL NOT NULL DEFAULT false
+    ready BOOL NOT NULL DEFAULT false,
+    position_x INT,
+    position_y INT
 );
 
 CREATE TABLE IF NOT EXISTS games (
@@ -27,7 +29,9 @@ CREATE TABLE IF NOT EXISTS games (
     status  game_status  NOT NULL DEFAULT 'lobby',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     code INT NOT NULL UNIQUE DEFAULT random(1000, 9999),
-    host_id UUID NOT NULL REFERENCES players (id) ON DELETE CASCADE
+    host_id UUID NOT NULL REFERENCES players (id) ON DELETE CASCADE,
+    width INT NOT NULL DEFAULT 20,
+    height INT NOT NULL DEFAULT 20
 );
 
 CREATE TABLE IF NOT EXISTS game_players (

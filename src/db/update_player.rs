@@ -30,7 +30,14 @@ pub async fn change_player_color(pool: &Pool<Postgres>, token: Uuid, color_id: U
         r#"
             UPDATE players
             SET color_id = $1
-            WHERE token = $2;
+            WHERE token = $2
+            AND (
+                SELECT status
+                FROM game_players
+                RIGHT OUTER JOIN games ON games.id = game_players.game_id
+                RIGHT OUTER JOIN players ON players.id = game_players.player_id
+                WHERE players.token = $2
+            ) = 'lobby'
         "#,
         color_id,
         token

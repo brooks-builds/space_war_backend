@@ -15,7 +15,7 @@ pub async fn get_players_in_lobby(
             JOIN players on players.id = game_players.player_id
             JOIN ships on ships.id = players.ship_id
             JOIN colors on colors.id = players.color_id
-            WHERE games.id = $1 AND games.status = 'lobby';"#,
+            WHERE games.id = $1;"#,
         game_id
     )
     .fetch_all(pool)
@@ -23,6 +23,7 @@ pub async fn get_players_in_lobby(
     .context("getting all players of a game")
 }
 
+#[derive(Debug)]
 pub struct DBLobbyPlayer {
     pub id: Uuid,
     pub name: String,

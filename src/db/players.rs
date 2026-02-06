@@ -15,13 +15,14 @@ pub async fn delete_player(pool: &Pool<Postgres>, token: Uuid) -> Result<()> {
 #[derive(Debug, Serialize)]
 pub struct DBPlayer {
     pub id: Uuid,
+    pub ready: bool,
 }
 
 pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<Option<DBPlayer>> {
     sqlx::query_as!(
         DBPlayer,
         r#"
-        SELECT id
+        SELECT id, ready
         FROM players
         WHERE token = $1
     "#,
@@ -36,7 +37,7 @@ pub async fn get_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result
     sqlx::query_as!(
         DBPlayer,
         r#"
-        SELECT players.id
+        SELECT players.id, players.ready
         FROM game_players
         JOIN players on players.id = game_players.player_id
         WHERE game_players.game_id = $1

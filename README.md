@@ -23,9 +23,9 @@ The core game for Space Battles is run from here, the frontends will display wha
 
 ### Playing the Game
 
-- [ ] Players in game cannot change ship type
-- [ ] Players in game cannot change their color
-- [ ] Players can see their own stats
+- [x] Players in game cannot change ship type
+- [x] Players in game cannot change their color
+- [ ] When the game starts, players are assigned random locations
 - [ ] Players can only see the location of other players
 - [ ] Players can update their speed +/- 1
 - [ ] Ships have a max speed
@@ -41,3 +41,10 @@ The core game for Space Battles is run from here, the frontends will display wha
 - [ ] Game ends when only one player remains
 
 ### Game Over
+
+## Polishing
+
+### Game Start
+
+- [ ] Players are not assigned locations next to other players
+- [ ] Tweak game size

@@ -1,5 +1,6 @@
 mod change_player;
 mod create_game;
+mod game_routes;
 mod get_lobby;
 mod get_player;
 mod get_ships;
@@ -28,6 +29,7 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
             "/api/games/{game_id}/lobby/stream",
             get(get_lobby::get_lobby_stream_route),
         )
+        .route("/api/games/{game_id}/stream", get(game_routes::game_stream))
         .route("/api/ships", get(get_ships::get_ships))
         .route(
             "/api/players/ship/{ship_id}",

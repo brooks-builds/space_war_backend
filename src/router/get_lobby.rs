@@ -1,3 +1,4 @@
+use crate::db::{self, create_game::DBCreatedGameStatus, get_lobby::DBLobbyPlayer};
 use axum::{
     Extension, Json,
     extract::Path,
@@ -14,8 +15,6 @@ use std::time::Duration;
 use tokio_stream::StreamExt;
 use uuid::Uuid;
 
-use crate::db::{self, get_lobby::DBLobbyPlayer};
-
 pub async fn get_lobby_stream_route(
     Path(game_id): Path<Uuid>,
     Extension(pool): Extension<Pool<Postgres>>,
@@ -24,8 +23,13 @@ pub async fn get_lobby_stream_route(
         let players_in_lobby = db::get_lobby::get_players_in_lobby(game_id, &pool)
             .await
             .unwrap();
+        let game = db::games::get_game_by_id(&pool, game_id)
+            .await
+            .unwrap()
+            .unwrap();
         let lobby_response = LobbyResponse {
             players: players_in_lobby.into_iter().map(Into::into).collect(),
+            game_status: game.status,
         };
         Some((Event::default().json_data(lobby_response), (game_id, pool)))
     })
@@ -46,8 +50,23 @@ pub async fn get_lobby_route(
             return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
         }
     };
+    let game = match db::games::get_game_by_id(&pool, game_id).await {
+        Ok(Some(game)) => game,
+        Ok(None) => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                "Game with provided id not found".to_owned(),
+            ));
+        }
+        Err(error) => {
+            eprintln!("{error:?}");
+
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+        }
+    };
     let lobby_response = LobbyResponse {
         players: players_in_lobby.into_iter().map(Into::into).collect(),
+        game_status: game.status,
     };
 
     Ok(Json(lobby_response))
@@ -56,6 +75,7 @@ pub async fn get_lobby_route(
 #[derive(Debug, Serialize)]
 pub struct LobbyResponse {
     players: Vec<LobbyPlayer>,
+    game_status: DBCreatedGameStatus,
 }
 
 #[derive(Debug, Serialize)]
