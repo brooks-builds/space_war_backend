@@ -15,15 +15,29 @@ pub async fn delete_player(pool: &Pool<Postgres>, token: Uuid) -> Result<()> {
 #[derive(Debug, Serialize)]
 pub struct DBPlayer {
     pub id: Uuid,
+    pub name: String,
+    pub ship: String,
+    pub color: String,
     pub ready: bool,
+    pub position_x: Option<i32>,
+    pub position_y: Option<i32>,
 }
 
 pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<Option<DBPlayer>> {
     sqlx::query_as!(
         DBPlayer,
         r#"
-        SELECT id, ready
+        SELECT
+            players.id,
+            players.name,
+            ships.character AS ship,
+            colors.name AS color,
+            players.ready,
+            players.position_x,
+            players.position_y
         FROM players
+        JOIN ships on ships.id = players.ship_id
+        JOIN colors on colors.id = players.color_id
         WHERE token = $1
     "#,
         token
@@ -37,9 +51,18 @@ pub async fn get_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result
     sqlx::query_as!(
         DBPlayer,
         r#"
-        SELECT players.id, players.ready
+        SELECT
+            players.id,
+            players.name,
+            ships.character AS ship,
+            colors.name AS color,
+            players.ready,
+            players.position_x,
+            players.position_y
         FROM game_players
         JOIN players on players.id = game_players.player_id
+        JOIN ships ON ships.id = players.ship_id
+        JOIN colors ON colors.id = players.color_id
         WHERE game_players.game_id = $1
     "#,
         game_id
@@ -80,5 +103,27 @@ pub async fn unready_all_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -
     .await
     .context("Marking all players in a game as not ready")?;
 
+    Ok(())
+}
+
+pub async fn set_player_position(
+    pool: &Pool<Postgres>,
+    x: i32,
+    y: i32,
+    player_id: &Uuid,
+) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET position_x = $1, position_y = $2
+            WHERE id = $3
+        "#,
+        x,
+        y,
+        player_id
+    )
+    .execute(pool)
+    .await
+    .context("Setting player location")?;
     Ok(())
 }
