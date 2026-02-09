@@ -6,7 +6,7 @@ pub async fn get_all_ships(pool: &Pool<Postgres>) -> Result<Vec<DBShip>> {
     sqlx::query_as!(
         DBShip,
         r#"
-            SELECT id, name, character
+            SELECT id, name, character, max_speed
             FROM ships;
         "#
     )
@@ -19,4 +19,5 @@ pub struct DBShip {
     pub id: Uuid,
     pub name: String,
     pub character: String,
+    pub max_speed: i32,
 }

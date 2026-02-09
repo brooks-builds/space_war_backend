@@ -26,6 +26,7 @@ pub struct GetShipsResponse {
     id: Uuid,
     class_name: String,
     character: char,
+    max_speed: i32,
 }
 
 impl From<DBShip> for GetShipsResponse {
@@ -34,6 +35,7 @@ impl From<DBShip> for GetShipsResponse {
             id: value.id,
             class_name: value.name,
             character: value.character.pop().unwrap_or('*'),
+            max_speed: value.max_speed,
         }
     }
 }

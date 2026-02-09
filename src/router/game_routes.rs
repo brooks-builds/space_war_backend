@@ -75,6 +75,7 @@ pub struct GamePlayer {
     pub id: Uuid,
     pub name: String,
     pub ship: char,
+    pub ship_max_speed: i32,
     pub color: String,
     pub ready: bool,
     pub position_x: i32,
@@ -86,7 +87,8 @@ impl From<DBPlayer> for GamePlayer {
         Self {
             id: value.id,
             name: value.name,
-            ship: value.ship.pop().unwrap_or_default(),
+            ship: value.ship_char.pop().unwrap_or_default(),
+            ship_max_speed: value.ship_max_speed,
             color: value.color,
             ready: value.ready,
             position_x: value.position_x.unwrap_or_default(),

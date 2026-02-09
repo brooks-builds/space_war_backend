@@ -26,9 +26,16 @@ The core game for Space Battles is run from here, the frontends will display wha
 - [x] Players in game cannot change ship type
 - [x] Players in game cannot change their color
 - [x] When the game starts, players are assigned random locations
-- [ ] Players can only see the location of other players
+- [x] Players can only see the location of other players
 - [ ] Players can update their speed +/- 1
-- [ ] Ships have a max speed
+  - [x] add max speed to ships
+  - [x] add speed to players
+  - [x] Ships route should return the maximum speed
+  - [x] Create get my player route to get my player
+  - [x] create route to increase speed
+  - [x] Speed cannot be increased past maximum speed
+  - [ ] Speed can be decreased by one
+  - [ ] Speed cannot be decreased below 0
 - [ ] Ships have a max / minimum distance they can travel based on speed
 - [ ] Ships have shields
 - [ ] Ships have hull strength

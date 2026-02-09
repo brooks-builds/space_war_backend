@@ -12,15 +12,18 @@ pub async fn delete_player(pool: &Pool<Postgres>, token: Uuid) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct DBPlayer {
     pub id: Uuid,
     pub name: String,
-    pub ship: String,
+    pub ship_char: String,
+    pub ship_max_speed: i32,
     pub color: String,
     pub ready: bool,
     pub position_x: Option<i32>,
     pub position_y: Option<i32>,
+    pub speed: i32,
+    pub token: Uuid,
 }
 
 pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<Option<DBPlayer>> {
@@ -30,11 +33,14 @@ pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<O
         SELECT
             players.id,
             players.name,
-            ships.character AS ship,
+            ships.character AS ship_char,
+            ships.max_speed AS ship_max_speed,
             colors.name AS color,
             players.ready,
             players.position_x,
-            players.position_y
+            players.position_y,
+            players.speed,
+            players.token
         FROM players
         JOIN ships on ships.id = players.ship_id
         JOIN colors on colors.id = players.color_id
@@ -54,11 +60,14 @@ pub async fn get_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result
         SELECT
             players.id,
             players.name,
-            ships.character AS ship,
+            ships.character AS ship_char,
+            ships.max_speed AS ship_max_speed,
             colors.name AS color,
             players.ready,
             players.position_x,
-            players.position_y
+            players.position_y,
+            players.speed,
+            players.token
         FROM game_players
         JOIN players on players.id = game_players.player_id
         JOIN ships ON ships.id = players.ship_id
@@ -125,5 +134,22 @@ pub async fn set_player_position(
     .execute(pool)
     .await
     .context("Setting player location")?;
+    Ok(())
+}
+
+pub async fn set_speed(pool: &Pool<Postgres>, token: Uuid, speed: i32) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET speed = $2
+            WHERE token = $1
+        "#,
+        token,
+        speed
+    )
+    .execute(pool)
+    .await
+    .context("Increasing player speed")?;
+
     Ok(())
 }

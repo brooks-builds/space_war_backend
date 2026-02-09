@@ -7,4 +7,5 @@ pub mod get_lobby;
 pub mod get_ships;
 pub mod join_game;
 pub mod players;
+pub mod ships;
 pub mod update_player;
