@@ -99,7 +99,7 @@ pub async fn protect(
 
     let extensions = request.extensions_mut();
 
-    extensions.insert(Extension(player));
+    extensions.insert(player);
 
     let response = next.run(request).await;
 
