@@ -8,6 +8,6 @@ services:
     volumes:
       - ./db_init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "psql -U postgres -c 'select * from games;'"]
+      test: ["CMD-SHELL", "psql -U postgres -c 'select * from player_turns;'"]
     ports:
       - 5432:5432

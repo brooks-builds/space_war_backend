@@ -42,6 +42,20 @@ CREATE TABLE IF NOT EXISTS game_players (
     CONSTRAINT game_players_primary_key PRIMARY KEY (game_id, player_id)
 );
 
+CREATE TABLE IF NOT EXISTS game_turns (
+    id UUID PRIMARY KEY DEFAULT uuidv4(),
+    game_id UUID NOT NULL REFERENCES games (id),
+    turn_number INT NOT NULL DEFAULT 1,
+    active BOOL NOT NULL DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS player_turns (
+    id UUID PRIMARY KEY DEFAULT uuidv4(),
+    player_id UUID NOT NULL REFERENCES players (id),
+    game_turn_id UUID NOT NULL REFERENCES game_turns (id),
+    speed_change INT NOT NULL
+);
+
 INSERT INTO ships (id, name, character, max_speed) VALUES ('7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c', 'Reliable', '>', 10);
 INSERT INTO ships (name, character, max_speed) VALUES ('Serpent', 'S', 15);
 INSERT INTO ships (name, character, max_speed) VALUES ('Intrepid', '@', 5);

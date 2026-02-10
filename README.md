@@ -36,6 +36,18 @@ The core game for Space Battles is run from here, the frontends will display wha
   - [x] Speed cannot be increased past maximum speed
   - [x] Speed can be decreased by one
   - [x] Speed cannot be decreased below 0
+- [x] Each player can set commands for the current turn
+  - [x] Create tables for turns and player commands
+  - [x] When a game starts, create the first turn
+  - [x] A player can submit a command for the current turn
+  - [x] A player cannot submit multiple commands for the same turn
+  - [x] When all players are ready, apply the command to the game for each player
+  - [x] Mark current turn no longer active
+  - [x] Create a new turn
+  - [x] Mark all players as not ready
+- [x] Players can update their speed
+  - [x] When a player is submitting a command, they can include a speed increase or decrease
+  - [x] Players cannot change speeds twice in one turn
 - [ ] Ships have a max / minimum distance they can travel based on speed
 - [ ] Ships have shields
 - [ ] Ships have hull strength

@@ -1,13 +1,14 @@
 use axum::{
-    Extension,
+    Extension, Json,
     extract::Path,
+    http::StatusCode,
     response::{
         Sse,
         sse::{Event, KeepAlive},
     },
 };
 use futures_util::{Stream, stream};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use std::time::Duration;
 use time::OffsetDateTime;
@@ -95,4 +96,55 @@ impl From<DBPlayer> for GamePlayer {
             position_y: value.position_y.unwrap_or_default(),
         }
     }
+}
+
+pub async fn command(
+    Extension(pool): Extension<Pool<Postgres>>,
+    Extension(player): Extension<DBPlayer>,
+    Json(command_body): Json<CommandRequestBody>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    if player.ready {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "Command already given this turn".to_owned(),
+        ));
+    }
+
+    let turn = match db::game_turns::get_latest_player_turn(&pool, player.id).await {
+        Ok(Some(turn)) => turn,
+        Ok(None) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                "No turns for the game found".to_owned(),
+            ));
+        }
+        Err(error) => {
+            eprintln!("{error:?}");
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+        }
+    };
+
+    if !turn.active {
+        return Err((StatusCode::BAD_REQUEST, "Turn is not active".to_owned()));
+    }
+
+    let speed_change = command_body.speed_change.unwrap_or_default().clamp(-1, 1);
+
+    if let Err(error) = db::player_turns::create_turn(&pool, player.id, turn.id, speed_change).await
+    {
+        eprintln!("{error:?}");
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+    }
+
+    if let Err(error) = db::players::ready_up(&pool, player.token).await {
+        eprintln!("{error:?}");
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+    }
+
+    Ok(StatusCode::CREATED)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CommandRequestBody {
+    pub speed_change: Option<i32>,
 }

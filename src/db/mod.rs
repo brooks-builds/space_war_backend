@@ -1,11 +1,13 @@
 pub mod colors;
 pub mod create_game;
 pub mod create_player;
+pub mod game_turns;
 pub mod games;
 pub mod get_game;
 pub mod get_lobby;
 pub mod get_ships;
 pub mod join_game;
+pub mod player_turns;
 pub mod players;
 pub mod ships;
 pub mod update_player;

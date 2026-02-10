@@ -29,6 +29,7 @@ use uuid::Uuid;
 pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
     Router::new()
         .route("/api/players/decrease_speed", post(players::decrease_speed))
+        .route("/api/games/{game_id}/command", post(game_routes::command))
         .route_layer(middleware::from_fn(protect))
         .route("/api/games", post(create_game_route))
         .route("/api/games/join", post(join_game::join_game_route))

@@ -15,7 +15,7 @@ pub async fn run_games(pool: Pool<Postgres>) -> tokio::task::JoinHandle<Result<(
                     db::create_game::DBCreatedGameStatus::Lobby => {
                         run_game_lobby(&pool, &game).await?
                     }
-                    db::create_game::DBCreatedGameStatus::Playing => {}
+                    db::create_game::DBCreatedGameStatus::Playing => run_game(game, &pool).await?,
                     db::create_game::DBCreatedGameStatus::GameOver => todo!(),
                 }
             }
@@ -44,6 +44,8 @@ async fn run_game_lobby(pool: &Pool<Postgres>, game: &DBGame) -> Result<()> {
         for ((x, y), player) in player_locations.iter().zip(players) {
             db::players::set_player_position(pool, *x, *y, &player.id).await?;
         }
+
+        db::game_turns::create_turn(pool, 1, game.id).await?;
     }
 
     Ok(())
@@ -92,4 +94,36 @@ fn init_player_locations(
     }
 
     locations
+}
+
+async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
+    let players = db::players::get_players_in_game(pool, game.id).await?;
+
+    if players.iter().any(|player| !player.ready) {
+        return Ok(());
+    }
+
+    let Some(game_turn) = db::game_turns::get_latest_player_turn(pool, players[0].id).await? else {
+        return Ok(());
+    };
+
+    for player in players {
+        let Some(player_turn) =
+            db::player_turns::get_players_turn(pool, player.id, game_turn.id).await?
+        else {
+            continue;
+        };
+
+        if player_turn.speed_change != 0 {
+            let speed = (player.speed + player_turn.speed_change).clamp(0, player.ship_max_speed);
+
+            db::players::set_speed(pool, player.token, speed).await?;
+        }
+    }
+
+    db::game_turns::mark_turn_not_active(pool, game_turn.id).await?;
+    db::players::unready_all_players_in_game(pool, game.id).await?;
+    db::game_turns::create_turn(pool, game_turn.turn_number + 1, game.id).await?;
+
+    Ok(())
 }
