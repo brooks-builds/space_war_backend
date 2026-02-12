@@ -12,7 +12,20 @@ pub async fn get_game_created_by_player(
 ) -> Result<Option<DBGame>> {
     sqlx::query_as!(
         DBGame,
-        r#"SELECT id, status AS "status: _", created_at, host_id, width, height FROM games WHERE host_id = $1"#,
+        r#"
+        SELECT
+            games.id,
+            status AS "status: _",
+            created_at,
+            host_id,
+            width,
+            height,
+            COALESCE(MAX(turn_number), 0) AS turn_number
+        FROM games
+        LEFT JOIN game_turns ON game_turns.game_id = games.id
+        WHERE host_id = $1
+        GROUP BY games.id
+        "#,
         player_id
     )
     .fetch_optional(pool)
@@ -59,7 +72,20 @@ pub async fn delete_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result<()> {
 pub async fn get_game_by_id(pool: &Pool<Postgres>, game_id: Uuid) -> Result<Option<DBGame>> {
     sqlx::query_as!(
         DBGame,
-        r#"SELECT id, status AS "status: _", created_at, host_id, width, height FROM games WHERE id = $1 "#,
+        r#"
+        SELECT
+            games.id,
+            status AS "status: _",
+            created_at,
+            host_id,
+            width,
+            height,
+            COALESCE(MAX(turn_number), 0) AS turn_number
+        FROM games
+        LEFT JOIN game_turns on game_turns.game_id = games.id
+        WHERE games.id = $1
+        GROUP BY games.id
+        "#,
         game_id
     )
     .fetch_optional(pool)
@@ -75,13 +101,24 @@ pub struct DBGame {
     pub host_id: Uuid,
     pub width: i32,
     pub height: i32,
+    pub turn_number: Option<i32>,
 }
 
 pub async fn get_all_games(pool: &Pool<Postgres>) -> Result<Vec<DBGame>> {
     sqlx::query_as!(
         DBGame,
         r#"
-        SELECT id, status AS "status: _", created_at, host_id, width, height FROM games
+        SELECT
+            games.id,
+            status AS "status: _",
+            created_at,
+            host_id,
+            width,
+            height,
+            COALESCE(MAX(turn_number), 0) AS turn_number
+        FROM games
+        LEFT JOIN game_turns ON game_turns.game_id = games.id
+        GROUP BY games.id
     "#
     )
     .fetch_all(pool)

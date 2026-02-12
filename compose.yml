@@ -9,5 +9,8 @@ services:
       - ./db_init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "psql -U postgres -c 'select * from player_turns;'"]
+      start_interval: 1s
+      start_period: 1s
+      retries: 10
     ports:
       - 5432:5432

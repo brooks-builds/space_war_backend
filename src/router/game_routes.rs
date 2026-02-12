@@ -56,6 +56,7 @@ pub struct Game {
     pub host_id: Uuid,
     pub width: i32,
     pub height: i32,
+    pub turn_number: i32,
 }
 
 impl From<DBGame> for Game {
@@ -67,6 +68,7 @@ impl From<DBGame> for Game {
             host_id: value.host_id,
             width: value.width,
             height: value.height,
+            turn_number: value.turn_number.unwrap_or_default(),
         }
     }
 }
