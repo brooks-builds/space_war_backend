@@ -28,7 +28,6 @@ pub async fn get_latest_player_turn(
         r#"
             SELECT
                 game_turns.id,
-                game_turns.game_id,
                 turn_number,
                 active
             FROM game_turns
@@ -47,7 +46,6 @@ pub async fn get_latest_player_turn(
 #[derive(Debug, Deserialize)]
 pub struct DBGameTurn {
     pub id: Uuid,
-    pub game_id: Uuid,
     pub turn_number: i32,
     pub active: bool,
 }

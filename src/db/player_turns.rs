@@ -34,9 +34,6 @@ pub async fn get_players_turn(
         DBPlayerTurn,
         r#"
             SELECT
-                id,
-                player_id,
-                game_turn_id,
                 speed_change
             FROM player_turns
             WHERE player_id = $1
@@ -52,8 +49,5 @@ pub async fn get_players_turn(
 
 #[derive(Debug, Deserialize)]
 pub struct DBPlayerTurn {
-    pub id: Uuid,
-    pub player_id: Uuid,
-    pub game_turn_id: Uuid,
     pub speed_change: i32,
 }

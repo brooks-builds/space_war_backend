@@ -83,6 +83,7 @@ pub struct GamePlayer {
     pub ready: bool,
     pub position_x: i32,
     pub position_y: i32,
+    pub ship_classname: String,
 }
 
 impl From<DBPlayer> for GamePlayer {
@@ -96,6 +97,7 @@ impl From<DBPlayer> for GamePlayer {
             ready: value.ready,
             position_x: value.position_x.unwrap_or_default(),
             position_y: value.position_y.unwrap_or_default(),
+            ship_classname: value.ship_classname,
         }
     }
 }
