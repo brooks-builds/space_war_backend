@@ -8,15 +8,26 @@ pub async fn create_turn(
     player_id: Uuid,
     game_turn_id: Uuid,
     speed_change: i32,
+    destination_x: Option<i32>,
+    destination_y: Option<i32>,
 ) -> Result<()> {
     query!(
         r#"
-            INSERT INTO player_turns (player_id, game_turn_id, speed_change)
-            VALUES ($1, $2, $3)
+            INSERT INTO player_turns
+                (
+                    player_id,
+                    game_turn_id,
+                    speed_change,
+                    destination_x,
+                    destination_y
+                )
+            VALUES ($1, $2, $3, $4, $5)
         "#,
         player_id,
         game_turn_id,
-        speed_change
+        speed_change,
+        destination_x,
+        destination_y,
     )
     .execute(pool)
     .await
@@ -34,7 +45,9 @@ pub async fn get_players_turn(
         DBPlayerTurn,
         r#"
             SELECT
-                speed_change
+                speed_change,
+                destination_x,
+                destination_y
             FROM player_turns
             WHERE player_id = $1
             AND game_turn_id = $2
@@ -50,4 +63,6 @@ pub async fn get_players_turn(
 #[derive(Debug, Deserialize)]
 pub struct DBPlayerTurn {
     pub speed_change: i32,
+    pub destination_x: Option<i32>,
+    pub destination_y: Option<i32>,
 }

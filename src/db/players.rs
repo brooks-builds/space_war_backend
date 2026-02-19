@@ -156,3 +156,21 @@ pub async fn set_speed(pool: &Pool<Postgres>, token: Uuid, speed: i32) -> Result
 
     Ok(())
 }
+
+pub async fn set_position(pool: &Pool<Postgres>, x: i32, y: i32, token: Uuid) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET position_x = $1, position_y = $2
+            WHERE token = $3
+        "#,
+        x,
+        y,
+        token
+    )
+    .execute(pool)
+    .await
+    .context("Setting player location")?;
+
+    Ok(())
+}

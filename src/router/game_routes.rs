@@ -133,8 +133,18 @@ pub async fn command(
     }
 
     let speed_change = command_body.speed_change.unwrap_or_default().clamp(-1, 1);
+    let destination_x = command_body.destination.map(|destination| destination.0);
+    let destination_y = command_body.destination.map(|destination| destination.1);
 
-    if let Err(error) = db::player_turns::create_turn(&pool, player.id, turn.id, speed_change).await
+    if let Err(error) = db::player_turns::create_turn(
+        &pool,
+        player.id,
+        turn.id,
+        speed_change,
+        destination_x,
+        destination_y,
+    )
+    .await
     {
         eprintln!("{error:?}");
         return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
@@ -151,4 +161,5 @@ pub async fn command(
 #[derive(Debug, Deserialize)]
 pub struct CommandRequestBody {
     pub speed_change: Option<i32>,
+    pub destination: Option<(i32, i32)>,
 }

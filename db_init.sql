@@ -53,7 +53,9 @@ CREATE TABLE IF NOT EXISTS player_turns (
     id UUID PRIMARY KEY DEFAULT uuidv4(),
     player_id UUID NOT NULL REFERENCES players (id),
     game_turn_id UUID NOT NULL REFERENCES game_turns (id),
-    speed_change INT NOT NULL
+    speed_change INT NOT NULL,
+    destination_x INT,
+    destination_y INT
 );
 
 INSERT INTO ships (id, name, character, max_speed) VALUES ('7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c', 'Reliable', '>', 10);

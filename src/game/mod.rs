@@ -1,4 +1,4 @@
-use crate::db::{self, games::DBGame};
+use crate::db::{self, games::DBGame, players::DBPlayer};
 use eyre::Result;
 use rand::{RngExt, rng};
 use sqlx::{Pool, Postgres};
@@ -119,6 +119,12 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
 
             db::players::set_speed(pool, player.token, speed).await?;
         }
+
+        if let Some(destination) = player_turn.destination_x.zip(player_turn.destination_y)
+            && validate_destination(destination.0, destination.1, &player)
+        {
+            db::players::set_position(pool, destination.0, destination.1, player.token).await?;
+        }
     }
 
     db::game_turns::mark_turn_not_active(pool, game_turn.id).await?;
@@ -126,4 +132,23 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
     db::game_turns::create_turn(pool, game_turn.turn_number + 1, game.id).await?;
 
     Ok(())
+}
+
+fn validate_destination(x: i32, y: i32, player: &DBPlayer) -> bool {
+    let Some(player_x) = player.position_x else {
+        return false;
+    };
+    let Some(player_y) = player.position_y else {
+        return false;
+    };
+    let distance = distance_to(x, y, player_x, player_y);
+
+    distance == player.speed
+}
+
+fn distance_to(first_x: i32, first_y: i32, second_x: i32, second_y: i32) -> i32 {
+    let x = first_x - second_x;
+    let y = first_y - second_y;
+
+    (x.pow(2) + y.pow(2)).isqrt()
 }
