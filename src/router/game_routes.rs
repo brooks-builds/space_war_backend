@@ -135,6 +135,8 @@ pub async fn command(
     let speed_change = command_body.speed_change.unwrap_or_default().clamp(-1, 1);
     let destination_x = command_body.destination.map(|destination| destination.0);
     let destination_y = command_body.destination.map(|destination| destination.1);
+    let torpedo_target_x = command_body.torpedo_target.map(|target| target.0);
+    let torpedo_target_y = command_body.torpedo_target.map(|target| target.1);
 
     if let Err(error) = db::player_turns::create_turn(
         &pool,
@@ -143,6 +145,8 @@ pub async fn command(
         speed_change,
         destination_x,
         destination_y,
+        torpedo_target_x,
+        torpedo_target_y,
     )
     .await
     {
@@ -162,4 +166,5 @@ pub async fn command(
 pub struct CommandRequestBody {
     pub speed_change: Option<i32>,
     pub destination: Option<(i32, i32)>,
+    pub torpedo_target: Option<(i32, i32)>,
 }

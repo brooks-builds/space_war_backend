@@ -10,6 +10,8 @@ pub async fn create_turn(
     speed_change: i32,
     destination_x: Option<i32>,
     destination_y: Option<i32>,
+    torpedo_target_x: Option<i32>,
+    torpedo_target_y: Option<i32>,
 ) -> Result<()> {
     query!(
         r#"
@@ -19,15 +21,19 @@ pub async fn create_turn(
                     game_turn_id,
                     speed_change,
                     destination_x,
-                    destination_y
+                    destination_y,
+                    torpedo_target_x,
+                    torpedo_target_y
                 )
-            VALUES ($1, $2, $3, $4, $5)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
         "#,
         player_id,
         game_turn_id,
         speed_change,
         destination_x,
         destination_y,
+        torpedo_target_x,
+        torpedo_target_y,
     )
     .execute(pool)
     .await
@@ -47,7 +53,9 @@ pub async fn get_players_turn(
             SELECT
                 speed_change,
                 destination_x,
-                destination_y
+                destination_y,
+                torpedo_target_x,
+                torpedo_target_y
             FROM player_turns
             WHERE player_id = $1
             AND game_turn_id = $2
@@ -65,4 +73,6 @@ pub struct DBPlayerTurn {
     pub speed_change: i32,
     pub destination_x: Option<i32>,
     pub destination_y: Option<i32>,
+    pub torpedo_target_x: Option<i32>,
+    pub torpedo_target_y: Option<i32>,
 }

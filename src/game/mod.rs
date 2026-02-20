@@ -119,6 +119,21 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
     let Some(game_turn) = db::game_turns::get_latest_player_turn(pool, players[0].id).await? else {
         return Ok(());
     };
+    // Simulate torpedos
+    //
+    // for each torpedo and player, simulate a tick at a time where each flies towards their targets
+    // need:
+    // - torpedo start location. This can be player start location
+    // - player destination
+    // - torpedo normalized velocity
+    //
+    // while players and torpedos are still moving
+    //   move torpedo to next position
+    //   move player to next position
+    //   check if torpedo is hitting player
+    //     reduce health of player
+    //     remove torpedo
+    let mut torpedos = vec![];
 
     for player in players {
         let Some(player_turn) =
@@ -137,6 +152,13 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
             && validate_destination(destination.0, destination.1, &player)
         {
             db::players::set_position(pool, destination.0, destination.1, player.token).await?;
+        }
+
+        if let Some((x, y)) = player_turn
+            .torpedo_target_x
+            .zip(player_turn.torpedo_target_y)
+        {
+            // simulate the flight of the torpedo to see if we hit any of the ships mid-flight
         }
     }
 
