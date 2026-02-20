@@ -27,6 +27,7 @@ pub struct GetShipsResponse {
     class_name: String,
     character: char,
     max_speed: i32,
+    max_torpedo_count: i32,
 }
 
 impl From<DBShip> for GetShipsResponse {
@@ -36,6 +37,7 @@ impl From<DBShip> for GetShipsResponse {
             class_name: value.name,
             character: value.character.pop().unwrap_or('*'),
             max_speed: value.max_speed,
+            max_torpedo_count: value.max_torpedo_count,
         }
     }
 }
