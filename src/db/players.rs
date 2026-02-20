@@ -25,6 +25,7 @@ pub struct DBPlayer {
     pub speed: i32,
     pub token: Uuid,
     pub ship_classname: String,
+    pub torpedo_count: i32,
 }
 
 pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<Option<DBPlayer>> {
@@ -42,7 +43,8 @@ pub async fn get_player_by_token(pool: &Pool<Postgres>, token: Uuid) -> Result<O
             players.position_y,
             players.speed,
             players.token,
-            ships.name AS ship_classname
+            ships.name AS ship_classname,
+            torpedo_count
         FROM players
         JOIN ships on ships.id = players.ship_id
         JOIN colors on colors.id = players.color_id
@@ -70,7 +72,8 @@ pub async fn get_players_in_game(pool: &Pool<Postgres>, game_id: Uuid) -> Result
             players.position_y,
             players.speed,
             players.token,
-            ships.name AS ship_classname
+            ships.name AS ship_classname,
+            players.torpedo_count
         FROM game_players
         JOIN players on players.id = game_players.player_id
         JOIN ships ON ships.id = players.ship_id

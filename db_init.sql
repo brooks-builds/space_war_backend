@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS players (
     ready BOOL NOT NULL DEFAULT false,
     position_x INT,
     position_y INT,
-    speed INT NOT NULL DEFAULT 0
+    speed INT NOT NULL DEFAULT 0,
+    torpedo_count INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS games (

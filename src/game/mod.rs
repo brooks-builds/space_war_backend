@@ -33,6 +33,7 @@ async fn run_game_lobby(pool: &Pool<Postgres>, game: &DBGame) -> Result<()> {
             if player.ready { count + 1 } else { count }
         },
     );
+    let all_ships = db::get_ships::get_all_ships(pool).await?;
 
     if players.len() == ready_count {
         let player_locations = init_player_locations(game.width, game.height, players.len());
@@ -40,6 +41,18 @@ async fn run_game_lobby(pool: &Pool<Postgres>, game: &DBGame) -> Result<()> {
         db::games::set_game_status(pool, game.id, db::create_game::DBCreatedGameStatus::Playing)
             .await?;
         db::players::unready_all_players_in_game(pool, game.id).await?;
+
+        for player in players.iter() {
+            let Some(ship) = all_ships
+                .iter()
+                .find(|ship| ship.name == player.ship_classname)
+            else {
+                continue;
+            };
+            let torpedoes = ship.max_torpedo_count;
+
+            db::update_player::set_player_torpedoes(pool, player.token, torpedoes).await?;
+        }
 
         for ((x, y), player) in player_locations.iter().zip(players) {
             db::players::set_player_position(pool, *x, *y, &player.id).await?;

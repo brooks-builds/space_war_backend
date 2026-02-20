@@ -48,3 +48,24 @@ pub async fn change_player_color(pool: &Pool<Postgres>, token: Uuid, color_id: U
 
     Ok(())
 }
+
+pub async fn set_player_torpedoes(
+    pool: &Pool<Postgres>,
+    token: Uuid,
+    torpedo_count: i32,
+) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET torpedo_count = $1
+            WHERE token = $2
+        "#,
+        torpedo_count,
+        token
+    )
+    .execute(pool)
+    .await
+    .context("Setting max torpedo count on player")?;
+
+    Ok(())
+}
