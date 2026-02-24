@@ -1,4 +1,10 @@
-use crate::db::{self, games::DBGame, players::DBPlayer};
+mod simulate;
+mod vector;
+
+use crate::{
+    db::{self, games::DBGame, players::DBPlayer},
+    game::vector::Vector,
+};
 use eyre::Result;
 use rand::{RngExt, rng};
 use sqlx::{Pool, Postgres};
@@ -133,9 +139,9 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
     //   check if torpedo is hitting player
     //     reduce health of player
     //     remove torpedo
-    let mut torpedos = vec![];
+    // let mut torpedos = vec![];
 
-    for player in players {
+    for (index, player) in players.iter().enumerate() {
         let Some(player_turn) =
             db::player_turns::get_players_turn(pool, player.id, game_turn.id).await?
         else {
@@ -158,7 +164,9 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
             .torpedo_target_x
             .zip(player_turn.torpedo_target_y)
         {
+            let torpedo_target = Vector::new(x, y);
             // simulate the flight of the torpedo to see if we hit any of the ships mid-flight
+            for (index, other_player) in players.iter().enumerate() {}
         }
     }
 
