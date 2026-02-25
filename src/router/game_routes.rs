@@ -15,7 +15,13 @@ use time::OffsetDateTime;
 use tokio_stream::StreamExt;
 use uuid::Uuid;
 
-use crate::db::{self, create_game::DBCreatedGameStatus, games::DBGame, players::DBPlayer};
+use crate::{
+    db::{
+        self, create_game::DBCreatedGameStatus, games::DBGame, player_turns::DBPlayerTurn,
+        players::DBPlayer,
+    },
+    game::vector::Vector,
+};
 
 #[axum::debug_handler]
 pub async fn game_stream(
@@ -30,9 +36,13 @@ pub async fn game_stream(
         let players = db::players::get_players_in_game(&pool, game_id)
             .await
             .unwrap();
+        let game_turns = db::player_turns::get_all_turns_for_game(&pool, &game.id)
+            .await
+            .unwrap();
         let game_stream = GameStream {
             game: game.into(),
             players: players.into_iter().map(Into::into).collect(),
+            turns: game_turns.into_iter().map(Into::into).collect(),
         };
 
         Some((Event::default().json_data(game_stream), (game_id, pool)))
@@ -46,6 +56,7 @@ pub async fn game_stream(
 pub struct GameStream {
     pub game: Game,
     pub players: Vec<GamePlayer>,
+    pub turns: Vec<Turn>,
 }
 
 #[derive(Debug, Serialize)]
@@ -167,4 +178,32 @@ pub struct CommandRequestBody {
     pub speed_change: Option<i32>,
     pub destination: Option<(i32, i32)>,
     pub torpedo_target: Option<(i32, i32)>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Turn {
+    pub destination: Option<Vector>,
+    pub torpedo_target: Option<Vector>,
+    pub turn_number: i32,
+    pub player_id: Uuid,
+}
+
+impl From<DBPlayerTurn> for Turn {
+    fn from(value: DBPlayerTurn) -> Self {
+        let destination = value
+            .destination_x
+            .zip(value.destination_y)
+            .map(|(x, y)| Vector::new(x, y));
+        let torpedo_target = value
+            .torpedo_target_x
+            .zip(value.torpedo_target_y)
+            .map(|(x, y)| Vector::new(x, y));
+
+        Self {
+            destination,
+            torpedo_target,
+            turn_number: value.turn_number,
+            player_id: value.player_id,
+        }
+    }
 }

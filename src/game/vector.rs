@@ -1,6 +1,8 @@
 use std::ops::{RemAssign, Sub};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub struct Vector {
     pub x: i32,
     pub y: i32,
@@ -18,36 +20,45 @@ impl Vector {
     pub fn steps_between(&self, other: Self) -> Vec<Self> {
         let mut steps = vec![];
         let direction = other - *self;
-        let ratio = direction.ratio();
+        let mut ratio = direction.ratio();
         let mut previous_step = *self;
+        let mut count = 0;
 
         #[allow(clippy::never_loop)]
         loop {
+            if count > 5 {
+                break;
+            }
             let mut next_step = steps.last().unwrap_or_else(|| self).clone();
-            let mut ratio = if ratio.x == 0 && ratio.y == 0 {
+
+            ratio = if ratio.x == 0 && ratio.y == 0 {
                 direction.ratio()
             } else {
                 ratio
             };
 
+            dbg!(&ratio);
             if ratio.x > ratio.y {
+                dbg!("x bigger than y");
                 next_step.x += direction.x / direction.x.abs();
                 ratio.x -= 1;
             } else if ratio.x < ratio.y {
+                dbg!("y bigger than x");
                 next_step.y += direction.y / direction.y.abs();
                 ratio.y -= 1;
             } else {
+                dbg!("x == y");
                 next_step.x += direction.x / direction.x.abs();
                 next_step.y += direction.y.checked_div(direction.y.abs()).unwrap_or(1);
                 ratio.x -= 1;
                 ratio.y -= 1;
             }
-
             steps.push(next_step);
 
             if next_step == other {
                 break;
             }
+            count += 1;
         }
 
         steps
@@ -60,16 +71,17 @@ impl Vector {
     pub fn ratio(&self) -> Self {
         let x;
         let y;
+        let vector = self.abs();
 
-        if self.x > self.y {
-            x = self.x.checked_div(self.y).unwrap_or(1);
-            y = self.x.checked_rem(self.y).unwrap_or(0);
-        } else if self.x < self.y {
-            y = self.y.checked_div(self.x).unwrap_or(1);
-            x = if self.y == 0 {
+        if vector.x > vector.y {
+            x = vector.x.checked_div(vector.y).unwrap_or(1);
+            y = vector.x.checked_rem(vector.y).unwrap_or(0);
+        } else if vector.x < vector.y {
+            y = vector.y.checked_div(vector.x).unwrap_or(1);
+            x = if vector.y == 0 {
                 1
             } else {
-                self.y.checked_rem(self.x).unwrap_or(0)
+                vector.y.checked_rem(vector.x).unwrap_or(0)
             };
         } else {
             x = 1;
@@ -77,6 +89,13 @@ impl Vector {
         };
 
         Self::new(x, y)
+    }
+
+    pub fn abs(&self) -> Self {
+        Self {
+            x: self.x.abs(),
+            y: self.y.abs(),
+        }
     }
 }
 
@@ -179,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn stepping_not_even_right() {
+    fn stepping_slightly_down_right() {
         let start = Vector::new(0, 0);
         let end = Vector::new(5, 2);
         let expected = vec![
@@ -188,6 +207,22 @@ mod tests {
             Vector::new(3, 1),
             Vector::new(4, 2),
             Vector::new(5, 2),
+        ];
+        let steps = start.steps_between(end);
+
+        assert_eq!(steps, expected);
+    }
+
+    #[test]
+    fn stepping_slightly_up_left() {
+        let start = Vector::new(5, 2);
+        let end = Vector::new(0, 0);
+        let expected = vec![
+            Vector::new(4, 2),
+            Vector::new(3, 1),
+            Vector::new(2, 1),
+            Vector::new(1, 0),
+            Vector::new(0, 0),
         ];
         let steps = start.steps_between(end);
 
@@ -228,5 +263,32 @@ mod tests {
         let expected = Vector::new(1, 0);
 
         assert_eq!(ratio, expected);
+    }
+
+    #[test]
+    fn ratio_5_2() {
+        let vector = Vector::new(5, 2);
+        let ratio = vector.ratio();
+        let expected = Vector::new(2, 1);
+
+        assert_eq!(ratio, expected);
+    }
+
+    #[test]
+    fn x_y_should_always_be_positive() {
+        let vector = Vector::new(-5, -2);
+        let ratio = vector.ratio();
+        let expected = Vector::new(2, 1);
+
+        assert_eq!(ratio, expected);
+    }
+
+    #[test]
+    fn vector_should_be_abs() {
+        let vector = Vector::new(-1, -2);
+        let abs = vector.abs();
+        let expected = Vector::new(1, 2);
+
+        assert_eq!(abs, expected);
     }
 }

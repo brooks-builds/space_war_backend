@@ -55,8 +55,11 @@ pub async fn get_players_turn(
                 destination_x,
                 destination_y,
                 torpedo_target_x,
-                torpedo_target_y
+                torpedo_target_y,
+                turn_number,
+                player_id
             FROM player_turns
+            JOIN game_turns on game_turns.id = player_turns.game_turn_id
             WHERE player_id = $1
             AND game_turn_id = $2
         "#,
@@ -68,6 +71,32 @@ pub async fn get_players_turn(
     .context("Getting turn for a player")
 }
 
+pub async fn get_all_turns_for_game(
+    pool: &Pool<Postgres>,
+    game_id: &Uuid,
+) -> Result<Vec<DBPlayerTurn>> {
+    query_as!(
+        DBPlayerTurn,
+        r#"
+            SELECT
+                speed_change,
+                destination_x,
+                destination_y,
+                torpedo_target_x,
+                torpedo_target_y,
+                turn_number,
+                player_id
+            FROM player_turns
+            JOIN game_turns on game_turns.id = player_turns.game_turn_id
+            WHERE game_turns.game_id = $1
+        "#,
+        game_id
+    )
+    .fetch_all(pool)
+    .await
+    .context("Fetching all player turns by game id")
+}
+
 #[derive(Debug, Deserialize)]
 pub struct DBPlayerTurn {
     pub speed_change: i32,
@@ -75,4 +104,6 @@ pub struct DBPlayerTurn {
     pub destination_y: Option<i32>,
     pub torpedo_target_x: Option<i32>,
     pub torpedo_target_y: Option<i32>,
+    pub turn_number: i32,
+    pub player_id: Uuid,
 }
