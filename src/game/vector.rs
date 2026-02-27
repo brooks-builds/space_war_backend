@@ -1,8 +1,8 @@
 use std::ops::{RemAssign, Sub};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Vector {
     pub x: i32,
     pub y: i32,
@@ -64,6 +64,13 @@ impl Vector {
         steps
     }
 
+    /// Calculate the steps between ourselves and another Vector.
+    ///
+    /// Using the algorithm from https://en.wikipedia.org/wiki/Line_drawing_algorithm (thanks to xXSuperCuberXx)
+    pub fn steps_betweenv2(&self, destination: &Self) -> Vec<Self> {
+        todo!()
+    }
+
     pub fn x_larger_or_equal(&self) -> bool {
         self.x >= self.y
     }
@@ -107,6 +114,12 @@ impl Sub for Vector {
             x: self.x - rhs.x,
             y: self.y - rhs.y,
         }
+    }
+}
+
+impl From<(i32, i32)> for Vector {
+    fn from((x, y): (i32, i32)) -> Self {
+        Self::new(x, y)
     }
 }
 
@@ -248,6 +261,33 @@ mod tests {
     }
 
     #[test]
+    fn from_0_0_to_5_3() {
+        let start = Vector::new(0, 0);
+        let destination = Vector::new(5, 3);
+        let expected = vec![
+            Vector::new(0, 1),
+            Vector::new(1, 2),
+            Vector::new(2, 3),
+            Vector::new(2, 4),
+            Vector::new(3, 5),
+        ];
+    }
+
+    // [s][ ][ ][ ][ ][ ]
+    // [ ][ ][ ][ ][ ][ ]
+    // [ ][ ][ ][ ][ ][ ]
+    // [ ][ ][ ][ ][ ][d]
+    // [ ][ ][ ][ ][ ][ ]
+
+    #[test]
+    fn ratio5_3() {
+        let ratio = Vector::new(5, 3).ratio();
+        let expected = Vector::zero();
+
+        assert_eq!(ratio, expected);
+    }
+
+    #[test]
     fn ratio_3_0() {
         let vector = Vector::new(3, 0);
         let ratio = vector.ratio();
@@ -291,4 +331,58 @@ mod tests {
 
         assert_eq!(abs, expected);
     }
+
+    #[test]
+    fn steps_betweenv2_down_right() {
+        let start = Vector::new(0, 0);
+        let destination = Vector::new(9, 3);
+        let expected = vec![
+            Vector::new(0, 0),
+            Vector::new(1, 0),
+            Vector::new(2, 1),
+            Vector::new(3, 1),
+            Vector::new(4, 1),
+            Vector::new(5, 2),
+            Vector::new(6, 2),
+            Vector::new(7, 2),
+            Vector::new(8, 3),
+            Vector::new(9, 3),
+        ];
+    }
+
+    #[test]
+    fn steps_betweenv2_up_right() {
+        let start = Vector::new(0, 3);
+        let destination = Vector::new(9, 0);
+        let expected = vec![
+            Vector::new(0, 3),
+            Vector::new(1, 3),
+            Vector::new(2, 2),
+            Vector::new(3, 2),
+            Vector::new(4, 2),
+            Vector::new(5, 1),
+            Vector::new(6, 1),
+            Vector::new(7, 1),
+            Vector::new(8, 0),
+            Vector::new(9, 0),
+        ];
+    }
+
+    #[test]
+    fn steps_betweenv2_down_left() {}
+
+    #[test]
+    fn steps_betweenv2_up_left() {}
+
+    #[test]
+    fn steps_betweenv2_right() {}
+
+    #[test]
+    fn steps_betweenv2_down() {}
+
+    #[test]
+    fn steps_betweenv2_left() {}
+
+    #[test]
+    fn steps_betweenv2_up() {}
 }

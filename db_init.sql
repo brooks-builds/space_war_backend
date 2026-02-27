@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS players (
     ready BOOL NOT NULL DEFAULT false,
     position_x INT,
     position_y INT,
-    speed INT NOT NULL DEFAULT 0,
+    speed INT NOT NULL DEFAULT 5,
     torpedo_count INT NOT NULL DEFAULT 0
 );
 
@@ -59,7 +59,9 @@ CREATE TABLE IF NOT EXISTS player_turns (
     destination_x INT,
     destination_y INT,
     torpedo_target_x INT,
-    torpedo_target_y INT
+    torpedo_target_y INT,
+    ship_travel_steps JSON,
+    torpedo_travel_steps JSON
 );
 
 INSERT INTO ships (id, name, character, max_speed, max_torpedo_count ) VALUES ('7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c', 'Reliable', '>', 10, 6);

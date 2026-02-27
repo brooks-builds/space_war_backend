@@ -36,9 +36,13 @@ pub async fn game_stream(
         let players = db::players::get_players_in_game(&pool, game_id)
             .await
             .unwrap();
-        let game_turns = db::player_turns::get_all_turns_for_game(&pool, &game.id)
-            .await
-            .unwrap();
+        let game_turns = match db::player_turns::get_all_turns_for_game(&pool, &game.id).await {
+            Ok(turns) => turns,
+            Err(error) => {
+                eprintln!("{error:?}");
+                panic!();
+            }
+        };
         let game_stream = GameStream {
             game: game.into(),
             players: players.into_iter().map(Into::into).collect(),
@@ -148,6 +152,11 @@ pub async fn command(
     let destination_y = command_body.destination.map(|destination| destination.1);
     let torpedo_target_x = command_body.torpedo_target.map(|target| target.0);
     let torpedo_target_y = command_body.torpedo_target.map(|target| target.1);
+    let ship_steps = command_body
+        .destination
+        .map(Vector::from)
+        .zip(player.position_x.zip(player.position_y).map(Vector::from))
+        .map(|(destination, start)| start.steps_between(destination));
 
     if let Err(error) = db::player_turns::create_turn(
         &pool,
@@ -158,6 +167,7 @@ pub async fn command(
         destination_y,
         torpedo_target_x,
         torpedo_target_y,
+        ship_steps,
     )
     .await
     {
@@ -186,6 +196,7 @@ pub struct Turn {
     pub torpedo_target: Option<Vector>,
     pub turn_number: i32,
     pub player_id: Uuid,
+    pub ship_travel_steps: Option<Vec<Vector>>,
 }
 
 impl From<DBPlayerTurn> for Turn {
@@ -198,12 +209,14 @@ impl From<DBPlayerTurn> for Turn {
             .torpedo_target_x
             .zip(value.torpedo_target_y)
             .map(|(x, y)| Vector::new(x, y));
+        let ship_travel_steps = value.ship_travel_steps.map(|steps| steps.0);
 
         Self {
             destination,
             torpedo_target,
             turn_number: value.turn_number,
             player_id: value.player_id,
+            ship_travel_steps,
         }
     }
 }
