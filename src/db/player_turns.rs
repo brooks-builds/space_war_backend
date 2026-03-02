@@ -1,10 +1,6 @@
 use eyre::{Context, Result};
 use serde::Deserialize;
-use serde_json::Value;
-use sqlx::{
-    Pool, Postgres, query, query_as,
-    types::{Json, JsonRawValue},
-};
+use sqlx::{Pool, Postgres, query, query_as, types::Json};
 use uuid::Uuid;
 
 use crate::game::vector::Vector;

@@ -1,10 +1,7 @@
 mod simulate;
 pub mod vector;
 
-use crate::{
-    db::{self, games::DBGame, players::DBPlayer},
-    game::vector::Vector,
-};
+use crate::db::{self, games::DBGame, players::DBPlayer};
 use eyre::Result;
 use rand::{RngExt, rng};
 use sqlx::{Pool, Postgres};
@@ -141,18 +138,12 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
     //     remove torpedo
     // let mut torpedos = vec![];
 
-    for (index, player) in players.iter().enumerate() {
+    for player in players.iter() {
         let Some(player_turn) =
             db::player_turns::get_players_turn(pool, player.id, game_turn.id).await?
         else {
             continue;
         };
-        let mut player_steps = None;
-        let Some((player_start_x, player_start_y)) = player.position_x.zip(player.position_y)
-        else {
-            continue;
-        };
-        let player_start = Vector::new(player_start_x, player_start_y);
 
         if player_turn.speed_change != 0 {
             let speed = (player.speed + player_turn.speed_change).clamp(0, player.ship_max_speed);
@@ -161,23 +152,9 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
         }
 
         if let Some(destination) = player_turn.destination_x.zip(player_turn.destination_y)
-            && validate_destination(destination.0, destination.1, &player)
+            && validate_destination(destination.0, destination.1, player)
         {
-            let player_end = Vector::new(destination.0, destination.1);
-
-            player_steps = Some(player_start.steps_between(player_end));
-
             db::players::set_position(pool, destination.0, destination.1, player.token).await?;
-        }
-
-        if let Some((torpedo_target_x, torpedo_target_y)) = player_turn
-            .torpedo_target_x
-            .zip(player_turn.torpedo_target_y)
-        {
-            let torpedo_target = Vector::new(torpedo_target_x, torpedo_target_y);
-            let torpedo_steps = player_start.steps_between(torpedo_target);
-            // simulate the flight of the torpedo to see if we hit any of the ships mid-flight
-            for (index, other_player) in players.iter().enumerate() {}
         }
     }
 
