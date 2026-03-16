@@ -69,3 +69,24 @@ pub async fn set_player_torpedoes(
 
     Ok(())
 }
+
+pub async fn set_player_hitpoints(
+    pool: &Pool<Postgres>,
+    token: Uuid,
+    hitpoints: i32,
+) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE players
+            SET hitpoints = $1
+            WHERE token = $2
+        "#,
+        hitpoints,
+        token,
+    )
+    .execute(pool)
+    .await
+    .context("Setting player hitpoints")?;
+
+    Ok(())
+}

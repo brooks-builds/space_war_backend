@@ -15,6 +15,7 @@ pub async fn create_turn(
     torpedo_target_x: Option<i32>,
     torpedo_target_y: Option<i32>,
     ship_steps: Option<Vec<Vector>>,
+    torpedo_steps: Option<Vec<Vector>>,
 ) -> Result<()> {
     query!(
         r#"
@@ -27,9 +28,10 @@ pub async fn create_turn(
                     destination_y,
                     torpedo_target_x,
                     torpedo_target_y,
-                    ship_travel_steps
+                    ship_travel_steps,
+                    torpedo_travel_steps
                 )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         "#,
         player_id,
         game_turn_id,
@@ -39,6 +41,7 @@ pub async fn create_turn(
         torpedo_target_x,
         torpedo_target_y,
         ship_steps.map(|steps| Json(steps)) as _,
+        torpedo_steps.map(|steps| Json(steps)) as _,
     )
     .execute(pool)
     .await
@@ -63,7 +66,8 @@ pub async fn get_players_turn(
                 torpedo_target_y,
                 turn_number,
                 player_id,
-                ship_travel_steps AS "ship_travel_steps: Json<Vec<Vector>>"
+                ship_travel_steps AS "ship_travel_steps: Json<Vec<Vector>>",
+                torpedo_travel_steps AS "torpedo_travel_steps: Json<Vec<Vector>>"
             FROM player_turns
             JOIN game_turns on game_turns.id = player_turns.game_turn_id
             WHERE player_id = $1
@@ -92,7 +96,8 @@ pub async fn get_all_turns_for_game(
                 torpedo_target_y,
                 turn_number,
                 player_id,
-                ship_travel_steps AS "ship_travel_steps: Json<Vec<Vector>>"
+                ship_travel_steps AS "ship_travel_steps: Json<Vec<Vector>>",
+                torpedo_travel_steps AS "torpedo_travel_steps: Json<Vec<Vector>>"
             FROM player_turns
             JOIN game_turns on game_turns.id = player_turns.game_turn_id
             WHERE game_turns.game_id = $1
@@ -114,4 +119,5 @@ pub struct DBPlayerTurn {
     pub turn_number: i32,
     pub player_id: Uuid,
     pub ship_travel_steps: Option<Json<Vec<Vector>>>,
+    pub torpedo_travel_steps: Option<Json<Vec<Vector>>>,
 }

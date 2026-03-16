@@ -53,8 +53,10 @@ async fn run_game_lobby(pool: &Pool<Postgres>, game: &DBGame) -> Result<()> {
                 continue;
             };
             let torpedoes = ship.max_torpedo_count;
+            let hitpoints = ship.max_hitpoints;
 
             db::update_player::set_player_torpedoes(pool, player.token, torpedoes).await?;
+            db::update_player::set_player_hitpoints(pool, player.token, hitpoints).await?;
         }
 
         for ((x, y), player) in player_locations.iter().zip(players) {

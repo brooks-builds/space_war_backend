@@ -11,7 +11,8 @@ pub async fn get_all_ships(pool: &Pool<Postgres>) -> Result<Vec<DBShip>> {
                 name,
                 character,
                 max_speed,
-                max_torpedo_count
+                max_torpedo_count,
+                max_hitpoints
             FROM ships;
         "#
     )
@@ -26,4 +27,5 @@ pub struct DBShip {
     pub character: String,
     pub max_speed: i32,
     pub max_torpedo_count: i32,
+    pub max_hitpoints: i32,
 }

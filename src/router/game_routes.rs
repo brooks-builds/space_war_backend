@@ -99,6 +99,7 @@ pub struct GamePlayer {
     pub position_x: i32,
     pub position_y: i32,
     pub ship_classname: String,
+    pub hitpoints: Option<i32>,
 }
 
 impl From<DBPlayer> for GamePlayer {
@@ -113,6 +114,7 @@ impl From<DBPlayer> for GamePlayer {
             position_x: value.position_x.unwrap_or_default(),
             position_y: value.position_y.unwrap_or_default(),
             ship_classname: value.ship_classname,
+            hitpoints: value.hitpoints,
         }
     }
 }
@@ -152,6 +154,11 @@ pub async fn command(
     let destination_y = command_body.destination.map(|destination| destination.1);
     let torpedo_target_x = command_body.torpedo_target.map(|target| target.0);
     let torpedo_target_y = command_body.torpedo_target.map(|target| target.1);
+    let torpedo_steps = torpedo_target_x
+        .zip(torpedo_target_y)
+        .map(Vector::from)
+        .zip(player.position_x.zip(player.position_y).map(Vector::from))
+        .map(|(target, start)| start.steps_between(target));
     let ship_steps = command_body
         .destination
         .map(Vector::from)
@@ -168,6 +175,7 @@ pub async fn command(
         torpedo_target_x,
         torpedo_target_y,
         ship_steps,
+        torpedo_steps,
     )
     .await
     {
@@ -197,6 +205,7 @@ pub struct Turn {
     pub turn_number: i32,
     pub player_id: Uuid,
     pub ship_travel_steps: Option<Vec<Vector>>,
+    pub torpedo_travel_steps: Option<Vec<Vector>>,
 }
 
 impl From<DBPlayerTurn> for Turn {
@@ -210,6 +219,7 @@ impl From<DBPlayerTurn> for Turn {
             .zip(value.torpedo_target_y)
             .map(|(x, y)| Vector::new(x, y));
         let ship_travel_steps = value.ship_travel_steps.map(|steps| steps.0);
+        let torpedo_travel_steps = value.torpedo_travel_steps.map(|steps| steps.0);
 
         Self {
             destination,
@@ -217,6 +227,7 @@ impl From<DBPlayerTurn> for Turn {
             turn_number: value.turn_number,
             player_id: value.player_id,
             ship_travel_steps,
+            torpedo_travel_steps,
         }
     }
 }

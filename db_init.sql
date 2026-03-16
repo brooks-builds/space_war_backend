@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS ships (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     character CHAR UNIQUE NOT NULL,
     max_speed INT NOT NULL DEFAULT 10,
-    max_torpedo_count INT NOT NULL DEFAULT 10
+    max_torpedo_count INT NOT NULL DEFAULT 10,
+    max_hitpoints INT NOT NULL DEFAULT 10
 );
 
 CREATE TABLE IF NOT EXISTS players (
@@ -25,7 +26,8 @@ CREATE TABLE IF NOT EXISTS players (
     position_x INT,
     position_y INT,
     speed INT NOT NULL DEFAULT 5,
-    torpedo_count INT NOT NULL DEFAULT 0
+    torpedo_count INT NOT NULL DEFAULT 0,
+    hitpoints INT
 );
 
 CREATE TABLE IF NOT EXISTS games (
@@ -64,9 +66,9 @@ CREATE TABLE IF NOT EXISTS player_turns (
     torpedo_travel_steps JSON
 );
 
-INSERT INTO ships (id, name, character, max_speed, max_torpedo_count ) VALUES ('7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c', 'Reliable', '>', 10, 6);
-INSERT INTO ships (name, character, max_speed, max_torpedo_count ) VALUES ('Serpent', 'S', 15, 3);
-INSERT INTO ships (name, character, max_speed, max_torpedo_count ) VALUES ('Intrepid', '@', 5, 15);
+INSERT INTO ships (id, name, character, max_speed, max_torpedo_count, max_hitpoints ) VALUES ('7959eef9-8e62-4cbe-a3da-8cb2abaa7d8c', 'Reliable', '>', 10, 6, 10);
+INSERT INTO ships (name, character, max_speed, max_torpedo_count, max_hitpoints ) VALUES ('Serpent', 'S', 15, 3, 5);
+INSERT INTO ships (name, character, max_speed, max_torpedo_count, max_hitpoints ) VALUES ('Intrepid', '@', 5, 15, 15);
 INSERT INTO colors (id, name) VALUES ('c7bb5e85-1e66-4df3-95d2-f37fb5498d63', 'red');
 INSERT INTO colors (name) VALUES ('green');
 INSERT INTO colors (name) VALUES ('yellow');
