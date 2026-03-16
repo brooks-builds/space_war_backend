@@ -22,7 +22,7 @@ pub async fn run_games(pool: Pool<Postgres>) -> tokio::task::JoinHandle<Result<(
                         run_game_lobby(&pool, &game).await?
                     }
                     db::create_game::DBCreatedGameStatus::Playing => run_game(game, &pool).await?,
-                    db::create_game::DBCreatedGameStatus::GameOver => todo!(),
+                    db::create_game::DBCreatedGameStatus::GameOver => run_game_over(),
                 }
             }
 
@@ -33,6 +33,7 @@ pub async fn run_games(pool: Pool<Postgres>) -> tokio::task::JoinHandle<Result<(
 
 async fn run_game_lobby(pool: &Pool<Postgres>, game: &DBGame) -> Result<()> {
     let players = db::players::get_players_in_game(pool, game.id).await?;
+    dbg!(&players);
     let ready_count = players.iter().fold(
         0,
         |count, player| {
@@ -118,7 +119,22 @@ fn init_player_locations(
 }
 
 async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
-    let players = db::players::get_players_in_game(pool, game.id).await?;
+    let players = db::players::get_players_in_game(pool, game.id)
+        .await?
+        .into_iter()
+        .filter(|player| player.hitpoints.is_some_and(|hitpoints| hitpoints > 0))
+        .collect::<Vec<DBPlayer>>();
+
+    if players.len() <= 1 {
+        dbg!("game is over, 1 or less players still alvie");
+        db::games::set_game_status(
+            pool,
+            game.id,
+            db::create_game::DBCreatedGameStatus::GameOver,
+        )
+        .await?;
+        return Ok(());
+    }
 
     if players.iter().any(|player| !player.ready) {
         return Ok(());
@@ -211,3 +227,5 @@ fn distance_to(first_x: i32, first_y: i32, second_x: i32, second_y: i32) -> i32 
 
     (x.pow(2) + y.pow(2)).isqrt()
 }
+
+fn run_game_over() {}

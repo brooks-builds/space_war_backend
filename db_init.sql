@@ -1,4 +1,4 @@
-CREATE TYPE game_status AS ENUM ('lobby', 'playing', 'game_over');
+CREATE TYPE game_status AS ENUM ('lobby', 'playing', 'gameover');
 
 CREATE TABLE IF NOT EXISTS colors (
     id  UUID PRIMARY KEY DEFAULT uuidv4(),
