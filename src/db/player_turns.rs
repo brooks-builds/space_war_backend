@@ -59,6 +59,7 @@ pub async fn get_players_turn(
         DBPlayerTurn,
         r#"
             SELECT
+                player_turns.id,
                 speed_change,
                 destination_x,
                 destination_y,
@@ -89,6 +90,7 @@ pub async fn get_all_turns_for_game(
         DBPlayerTurn,
         r#"
             SELECT
+                player_turns.id,
                 speed_change,
                 destination_x,
                 destination_y,
@@ -111,6 +113,7 @@ pub async fn get_all_turns_for_game(
 
 #[derive(Debug, Deserialize)]
 pub struct DBPlayerTurn {
+    pub id: Uuid,
     pub speed_change: i32,
     pub destination_x: Option<i32>,
     pub destination_y: Option<i32>,
@@ -120,4 +123,54 @@ pub struct DBPlayerTurn {
     pub player_id: Uuid,
     pub ship_travel_steps: Option<Json<Vec<Vector>>>,
     pub torpedo_travel_steps: Option<Json<Vec<Vector>>>,
+}
+
+pub async fn get_all_player_turns_by_game_turn_id(
+    pool: &Pool<Postgres>,
+    game_turn_id: Uuid,
+) -> Result<Vec<DBPlayerTurn>> {
+    sqlx::query_as!(
+        DBPlayerTurn,
+        r#"
+            SELECT
+                player_turns.id,
+                speed_change,
+                destination_x,
+                destination_y,
+                torpedo_target_x,
+                torpedo_target_y,
+                turn_number,
+                player_id,
+                ship_travel_steps AS "ship_travel_steps: Json<Vec<Vector>>",
+                torpedo_travel_steps AS "torpedo_travel_steps: Json<Vec<Vector>>"
+            FROM player_turns
+            JOIN game_turns on game_turns.id = player_turns.game_turn_id
+            WHERE game_turns.id = $1
+        "#,
+        game_turn_id
+    )
+    .fetch_all(pool)
+    .await
+    .context("Getting all player turns for a specific game turn")
+}
+
+pub async fn update_torpedo_steps(
+    pool: &Pool<Postgres>,
+    turn_id: Uuid,
+    torpedo_steps: Option<Json<Vec<Vector>>>,
+) -> Result<()> {
+    sqlx::query!(
+        r#"
+            UPDATE player_turns
+            SET torpedo_travel_steps = $1
+            WHERE id = $2
+        "#,
+        torpedo_steps as _,
+        turn_id
+    )
+    .execute(pool)
+    .await
+    .context("Updating the torpedo steps for a player turn")?;
+
+    Ok(())
 }

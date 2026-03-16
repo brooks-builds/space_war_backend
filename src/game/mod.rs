@@ -1,10 +1,13 @@
 mod simulate;
 pub mod vector;
 
-use crate::db::{self, games::DBGame, players::DBPlayer};
+use crate::{
+    db::{self, games::DBGame, players::DBPlayer},
+    game::vector::Vector,
+};
 use eyre::Result;
 use rand::{RngExt, rng};
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Postgres, types::Json};
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -124,21 +127,6 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
     let Some(game_turn) = db::game_turns::get_latest_player_turn(pool, players[0].id).await? else {
         return Ok(());
     };
-    // Simulate torpedos
-    //
-    // for each torpedo and player, simulate a tick at a time where each flies towards their targets
-    // need:
-    // - torpedo start location. This can be player start location
-    // - player destination
-    // - torpedo normalized velocity
-    //
-    // while players and torpedos are still moving
-    //   move torpedo to next position
-    //   move player to next position
-    //   check if torpedo is hitting player
-    //     reduce health of player
-    //     remove torpedo
-    // let mut torpedos = vec![];
 
     for player in players.iter() {
         let Some(player_turn) =
@@ -157,6 +145,44 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
             && validate_destination(destination.0, destination.1, player)
         {
             db::players::set_position(pool, destination.0, destination.1, player.token).await?;
+        }
+
+        for other_player in players.iter() {
+            if other_player.id == player.id {
+                continue;
+            }
+
+            let Some(other_player_turn) =
+                db::player_turns::get_players_turn(pool, other_player.id, game_turn.id).await?
+            else {
+                continue;
+            };
+            let torpedo_travel_steps = player_turn
+                .torpedo_travel_steps
+                .as_ref()
+                .map(|steps| steps.0.clone());
+            let other_ship_steps = other_player_turn.ship_travel_steps.map(|steps| steps.0);
+            let other_ship_location = Vector::new(
+                other_player_turn.destination_x.unwrap_or_default(),
+                other_player_turn.destination_y.unwrap_or_default(),
+            );
+
+            if let Some(torpedo_step_index) = simulate::player_torpedo_hits(
+                torpedo_travel_steps.clone(),
+                other_ship_steps,
+                other_ship_location,
+            ) && let Some(torpedo_steps) = &torpedo_travel_steps
+            {
+                let shortened_torpedo_steps = &torpedo_steps[..torpedo_step_index];
+
+                db::update_player::update_player_hitpoints(pool, other_player.token, -5).await?;
+                db::player_turns::update_torpedo_steps(
+                    pool,
+                    player_turn.id,
+                    Some(Json(shortened_torpedo_steps.to_vec())),
+                )
+                .await?;
+            }
         }
     }
 
