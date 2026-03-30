@@ -32,6 +32,7 @@ pub fn create_router(pg_pool: Pool<Postgres>) -> Router {
         .route("/api/games/{game_id}/command", post(game_routes::command))
         .route_layer(middleware::from_fn(protect))
         .route("/api/games", post(create_game_route))
+        .route("/api/games/{game_id}", get(game_routes::get_game_by_id))
         .route("/api/games/join", post(join_game::join_game_route))
         .route(
             "/api/games/{game_id}/lobby",

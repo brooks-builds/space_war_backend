@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::db::{self, get_game::get_game_by_code, join_game::join_game};
+use crate::db::{
+    self, create_game::DBCreatedGameStatus, get_game::get_game_by_code, join_game::join_game,
+};
 
 pub async fn join_game_route(
     Extension(db_pool): Extension<Pool<Postgres>>,
@@ -44,6 +46,7 @@ pub async fn join_game_route(
         token: player.token,
         game_id: game.id,
         player_id: player.id,
+        status: game.status,
     };
 
     Ok((StatusCode::CREATED, Json(join_game_response)))
@@ -60,4 +63,5 @@ pub struct JoinGameResponse {
     pub token: Uuid,
     pub game_id: Uuid,
     pub player_id: Uuid,
+    pub status: DBCreatedGameStatus,
 }

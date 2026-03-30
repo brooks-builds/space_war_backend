@@ -231,3 +231,59 @@ impl From<DBPlayerTurn> for Turn {
         }
     }
 }
+
+#[axum::debug_handler]
+pub async fn get_game_by_id(
+    Path(game_id): Path<Uuid>,
+    Extension(pool): Extension<Pool<Postgres>>,
+) -> Result<Json<GetGameByIDResponse>, (StatusCode, String)> {
+    let db_players = match db::players::get_players_in_game(&pool, game_id).await {
+        Ok(players) => players,
+        Err(error) => {
+            eprintln!("Error getting all players: {error:?}");
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+        }
+    };
+    let db_game = match db::games::get_game_by_id(&pool, game_id).await {
+        Ok(Some(game)) => game,
+        Ok(None) => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                "No game with provided id found".to_owned(),
+            ));
+        }
+        Err(error) => {
+            eprintln!("{error:?}");
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{error}")));
+        }
+    };
+    let players = db_players
+        .into_iter()
+        .map(|db_player| GetGameByIdPlayer {
+            id: db_player.id,
+            name: db_player.name,
+            hitpoints: db_player.hitpoints.unwrap_or_default(),
+        })
+        .collect::<Vec<GetGameByIdPlayer>>();
+    let response = GetGameByIDResponse {
+        id: game_id,
+        players,
+        status: db_game.status,
+    };
+
+    Ok(Json(response))
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetGameByIDResponse {
+    pub id: Uuid,
+    pub players: Vec<GetGameByIdPlayer>,
+    pub status: DBCreatedGameStatus,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetGameByIdPlayer {
+    pub id: Uuid,
+    pub name: String,
+    pub hitpoints: i32,
+}

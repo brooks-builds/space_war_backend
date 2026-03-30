@@ -126,7 +126,7 @@ async fn run_game(game: DBGame, pool: &Pool<Postgres>) -> Result<()> {
         .collect::<Vec<DBPlayer>>();
 
     if players.len() <= 1 {
-        dbg!("game is over, 1 or less players still alvie");
+        dbg!("game is over, 1 or less players still alive");
         db::games::set_game_status(
             pool,
             game.id,

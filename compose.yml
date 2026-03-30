@@ -14,3 +14,9 @@ services:
       retries: 10
     ports:
       - 5432:5432
+  game:
+    build: .
+    volumes:
+      - .:/code
+    ports:
+      - 3000:3000
