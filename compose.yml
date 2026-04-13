@@ -1,4 +1,3 @@
-
 services:
   db:
     image: postgres
@@ -14,9 +13,41 @@ services:
       retries: 10
     ports:
       - 5432:5432
+    networks:
+      - space_battle_network
   game:
     build: .
     volumes:
       - .:/code
     ports:
       - 3000:3000
+    networks:
+      - space_battle_network
+  backend_hx:
+    profiles:
+      - editor
+    build: ../helix_config
+    volumes:
+      - .:/code
+    networks:
+      - space_battle_network
+  frontend_hx:
+    profiles:
+      - editor
+    build: ../helix_config
+    volumes:
+      - ../anathema_space_battle:/code/code
+      - ../bb_anathema:/code/bb_anathema
+    networks:
+      - space_battle_network
+  frontend:
+    profiles:
+      - game
+    build: ../anathema_space_battle
+    volumes:
+      - ../anathema_space_battle:/code/game
+      - ../bb_anathema:/code/bb_anathema
+    networks:
+      - space_battle_network
+networks:
+  space_battle_network:
